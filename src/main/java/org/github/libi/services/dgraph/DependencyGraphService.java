@@ -8,6 +8,7 @@
 package org.github.libi.services.dgraph;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -110,6 +111,11 @@ public class DependencyGraphService {
   }
 
   public void saveGraph(DependencyGraph dependencyGraph, File file) {
+    try {
+      Files.createDirectories(file.getParentFile().toPath());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     var exporter = new JSONExporter<Artifact, Dependency>(
         v -> v.getId());
     exporter.setVertexAttributeProvider((v) -> {
@@ -135,6 +141,7 @@ public class DependencyGraphService {
       return map;
     });
     try (var writer = new FileWriter(file)) {
+      Files.createDirectories(file.getParentFile().toPath());
       exporter.exportGraph(dependencyGraph.getGraph(), writer);
     } catch (IOException e) {
     }
@@ -182,6 +189,11 @@ public class DependencyGraphService {
   }
 
   public void dotExport(File file) {
+    try {
+      Files.createDirectories(file.getParentFile().toPath());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     dotExport(workingGraph.get().getGraph(), file);
   }
 
@@ -191,6 +203,11 @@ public class DependencyGraphService {
 
   public void dotExport(Graph<Artifact, Dependency> graph, File file,
       Map<String, VerticeSet> colorsToArtifacts) {
+    try {
+      Files.createDirectories(file.getParentFile().toPath());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     var exporter = new DOTExporter<Artifact, Dependency>();
     exporter.setVertexAttributeProvider(a -> {
       Map<String, Attribute> attrs = new HashMap<>();

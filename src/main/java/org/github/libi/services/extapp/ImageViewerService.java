@@ -9,6 +9,7 @@ package org.github.libi.services.extapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class ImageViewerService {
   public void openInViewer(File imageFile) {
     var processBuilder = new ProcessBuilder(imageViewerApp, imageFile.getPath());
     try {
+      Files.createDirectories(imageFile.getParentFile().toPath());
       processBuilder.start();
     } catch (IOException e) {
       log.error("Cannot view file " + imageFile, e);
