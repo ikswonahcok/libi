@@ -17,18 +17,23 @@ repositories {
 }
 
 dependencies {
-    antlr "org.antlr:antlr4:4.8"
-    compileOnly "org.antlr:antlr4-runtime:4.8"
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-    implementation 'org.springframework.shell:spring-shell-starter:2.0.1.RELEASE'
-    implementation 'org.jgrapht:jgrapht-core:1.5.1'
-    implementation 'org.jgrapht:jgrapht-io:1.5.1'
-    compileOnly 'org.projectlombok:lombok:1.18.22'
-    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    antlr "org.antlr:antlr4:${antlrVersion}"
+    compileOnly "org.antlr:antlr4-runtime:${antlrVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-aop"
+    implementation "org.springframework.shell:spring-shell-starter:${springShellVersion}"
+    implementation "org.jgrapht:jgrapht-core:${jgraphtVersion}"
+    implementation "org.jgrapht:jgrapht-io:${jgraphtVersion}"
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 }
 
 generateGrammarSource {
     arguments += ['-package', 'org.github.libi.libiel', '-visitor', '-no-listener']
+}
+
+java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 }
 
 bootJar {
