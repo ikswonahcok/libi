@@ -75,32 +75,8 @@ public class DependencyGraphService {
     gradlewService.processGradlewDependencies(project, treeReader::readLines);
   }
 
-  public Map<String, String> getProperties(Project project) {
-    ProcessBuilder processBuilder;
-    if (project.isRoot()) {
-      processBuilder = new ProcessBuilder("./gradlew", "properties").directory(
-          project.getDir());
-    } else {
-      processBuilder = new ProcessBuilder("./gradlew", project.getName() + ":properties").directory(
-          project.getDir());
-    }
-    Process process;
-    try {
-      process = processBuilder.start();
-      try (var bis = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-        return bis.lines()
-            .map(l -> l.split(": ", 2))
-            .filter(t -> t.length == 2)
-            .collect(Collectors.toMap(t -> t[0], t -> t[1], (o1, o2) -> o2));
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return Collections.emptyMap();
-  }
-
   public Optional<Artifact> getArtifact(Project project) {
-    var properties = getProperties(project);
+    var properties = gradlewService.getProperties(project);
     var group = properties.get("group");
     var name = properties.get("name");
     if (group != null && name != null) {
@@ -116,21 +92,16 @@ public class DependencyGraphService {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    var exporter = new JSONExporter<Artifact, Dependency>(
-        v -> v.getId());
+    var exporter = new JSONExporter<Artifact, Dependency>(Artifact::getId);
     exporter.setVertexAttributeProvider((v) -> {
       Map<String, Attribute> map = new LinkedHashMap<>();
       map.put("isLibrary", DefaultAttribute.createAttribute(v.isLibrary()));
       map.put("runtimeDependencies",
           DefaultAttribute.createAttribute(
-              v.getRuntimeDependencies().stream()
-                  .collect(
-                      Collectors.joining(","))));
+              String.join(",", v.getRuntimeDependencies())));
       map.put("compileDependencies",
           DefaultAttribute.createAttribute(
-              v.getCompileDependencies().stream()
-                  .collect(
-                      Collectors.joining(","))));
+              String.join(",", v.getCompileDependencies())));
       return map;
     });
     exporter.setEdgeAttributeProvider((e) -> {
@@ -161,14 +132,10 @@ public class DependencyGraphService {
           });
       Optional.ofNullable(attrs.get("runtimeDependencies"))
           .map(Attribute::getValue)
-          .ifPresent(value -> {
-            v.getRuntimeDependencies().addAll(Arrays.asList(value.split(",")));
-          });
+          .ifPresent(value -> v.getRuntimeDependencies().addAll(Arrays.asList(value.split(","))));
       Optional.ofNullable(attrs.get("compileDependencies"))
           .map(Attribute::getValue)
-          .ifPresent(value -> {
-            v.getCompileDependencies().addAll(Arrays.asList(value.split(",")));
-          });
+          .ifPresent(value -> v.getCompileDependencies().addAll(Arrays.asList(value.split(","))));
       return v;
     });
     importer.setEdgeWithAttributesFactory(attrs -> {
@@ -258,9 +225,7 @@ public class DependencyGraphService {
   private void addDependency(File dir, DependencyGraph graph) {
     var projects = getProjects(dir);
     var project2Artifact = new HashMap<String, Artifact>();
-    projects.stream().forEach(project -> {
-      getArtifact(project).ifPresent(artifact -> project2Artifact.put(project.getName(), artifact));
-    });
+    projects.forEach(project -> getArtifact(project).ifPresent(artifact -> project2Artifact.put(project.getName(), artifact)));
     getProjects(dir).forEach(project -> scanDependencies(project, graph, project2Artifact));
   }
 }

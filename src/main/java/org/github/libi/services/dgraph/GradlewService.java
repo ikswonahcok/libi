@@ -11,20 +11,21 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
+import org.github.libi.services.extapp.ExtAppConfigProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class GradlewService {
 
-  private String gradlewCmd;
-
-  @Value("${libi.extapp.gradlew}")
-  public void setGradlewCmd(String gradlewCmd) {
-    this.gradlewCmd = gradlewCmd;
-  }
+  private final ExtAppConfigProperties extAppConfigProperties;
 
   public void processCommandOutput(File dir, Consumer<Stream<String>> consumer,
       String... command) {
@@ -56,7 +57,31 @@ public class GradlewService {
     }
   }
 
+  public Map<String, String> getProperties(Project project) {
+    ProcessBuilder processBuilder;
+    if (project.isRoot()) {
+      processBuilder = new ProcessBuilder(getGradlewCmd(), "properties").directory(
+          project.getDir());
+    } else {
+      processBuilder = new ProcessBuilder(getGradlewCmd(), project.getName() + ":properties").directory(
+          project.getDir());
+    }
+    Process process;
+    try {
+      process = processBuilder.start();
+      try (var bis = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        return bis.lines()
+            .map(l -> l.split(": ", 2))
+            .filter(t -> t.length == 2)
+            .collect(Collectors.toMap(t -> t[0], t -> t[1], (o1, o2) -> o2));
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return Collections.emptyMap();
+  }
+
   protected String getGradlewCmd() {
-    return gradlewCmd;
+    return extAppConfigProperties.getGradlew();
   }
 }
