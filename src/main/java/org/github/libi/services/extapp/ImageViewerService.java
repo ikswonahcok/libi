@@ -10,23 +10,21 @@ package org.github.libi.services.extapp;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ImageViewerService {
 
-  private String imageViewerApp;
-
-  @Value("${libi.extapp.image-viewer}")
-  public void setImageViewerApp(String imageViewerApp) {
-    this.imageViewerApp = imageViewerApp;
-  }
+  private final ExtAppConfigProperties extAppConfigProperties;
 
   public void openInViewer(File imageFile) {
-    var processBuilder = new ProcessBuilder(imageViewerApp, imageFile.getPath());
+    var processBuilder = new ProcessBuilder(
+        extAppConfigProperties.getImageViewer(),
+        imageFile.getPath());
     try {
       Files.createDirectories(imageFile.getParentFile().toPath());
       processBuilder.start();

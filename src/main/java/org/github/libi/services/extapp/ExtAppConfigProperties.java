@@ -7,9 +7,17 @@
 
 package org.github.libi.services.extapp;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
+@Getter
+@Setter
+@Configuration
 @ConfigurationProperties(prefix = "libi.extapp")
 public class ExtAppConfigProperties {
+  private String imageViewer;
 
+  private String gradlew;
 }
