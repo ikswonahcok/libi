@@ -150,6 +150,128 @@ LibiEL is simple expression language dedicated to dependency graph filtering. In
 formal language definition (grammar is available in `LibiEL.g4` file) i will describe some sample
 expressions.
 
+### `.`
+
+Dot means current context of processing. If used alone - means the whole **working graph**.
+
+```
+shell:>count "."
+Found 51 artifacts
+```
+
+### `re ''`
+
+Filter artefacts using regexp on full artifact id.
+
+```
+shell:>diagram "re 'log'" --show --name diagram1
+Created diagram with 6 artifacts
+```
+
+![](examples/diagram1.png)
+
+### `id ''`
+
+Find artifact by id.
+
+```
+shell:>diagram "id 'org.jgrapht:jgrapht-core' + id 'org.jgrapht:jgrapht-io'" --show --name diagram2
+Created diagram with 2 artifacts
+```
+
+![](examples/diagram2.png)
+
+### `gre ''`
+
+Filter artefacts using regexp on group name.
+
+```
+shell:>diagram "gre 'boot'" --show --name diagram3
+Created diagram with 6 artifacts
+```
+
+![](examples/diagram3.png)
+
+### `gid ''`
+
+Find artifacts by group id.
+
+```
+shell:>diagram "gid 'org.jline'" --show --name diagram4
+Created diagram with 3 artifacts
+```
+
+![](examples/diagram4.png)
+
+### `->` `<-`
+
+Short arrows are used to find direct dependencies. Can be uses as an infix operator or as a suffix.
+
+```
+shell:>diagram "re 'libi' -> (re 'antlr' + re 'lombok')" --show --name diagram5
+Created diagram with 4 artifacts
+```
+
+![](examples/diagram5.png)
+
+```
+shell:>diagram "id 'org.springframework.shell:spring-shell-core' <-" --show --name diagram6
+Created diagram with 5 artifacts
+```
+
+![](examples/diagram6.png)
+
+### `-->` `<--`
+
+Long arrows are used to find all dependencies including transitive. Similar to short arrows it can
+be use as infix or suffix.
+
+```
+shell:>diagram "re 'libi' --> id 'org.jline:jline'" --show --name diagram7
+Created diagram with 8 artifacts
+```
+
+![](examples/diagram7.png)
+
+```
+shell:>diagram "re 'ST4' <--" --show --name diagram8
+Created diagram with 3 artifacts
+```
+
+![](examples/diagram8.png)
+
+### function call
+
+Function without argument can be called without brackets. User can define own functions without
+arguments using LibiEL expressions.
+
+```
+shell:>color green "leaves"
+shell:>color lightblue "roots"
+shell:>diagram "re 'libi' -> ->" --show --name diagram9
+Created diagram with 24 artifacts
+```
+
+![](examples/diagram9.png)
+
+```
+shell:>function libi "re 'libi'"
+shell:>list "compile(libi) - runtime(libi)"
+Found 1 artifacts:
+org.projectlombok:lombok
+```
+
+### `filter`
+
+Filter is narrowing working graph to given artifact set. All graph aware operations after 'filter'
+will work on graph defined by expression before 'filter'.
+
+```
+shell:>list "re 'starter' filter isolated"
+Found 1 artifacts:
+org.springframework.shell:spring-shell-starter
+```
+
 ## Dependencies
 
 - [JGraphT](https://jgrapht.org/) is Java library providing graph-theory objects, algorithms and
